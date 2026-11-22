@@ -66,7 +66,7 @@ fun GhTheme(content: @Composable () -> Unit) {
 
 /** 圆角小标签按钮 */
 @Composable
-fun Pill(text: String, active: Boolean, onClick: () -> Unit, accent: Color = GhGreen) {
+fun Pill(text: String, active: Boolean, accent: Color = GhGreen, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(50),
         color = if (active) accent.copy(alpha = 0.18f) else GhSurface2,

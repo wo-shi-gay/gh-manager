@@ -80,14 +80,24 @@ fun RepoOverview(fullName: String, owner: String, repo: String, onOpenIssue: (In
     var busy by remember { mutableStateOf(true) }
     var err by remember { mutableStateOf("") }
     var msg by remember { mutableStateOf("") }
+    var starred by remember { mutableStateOf(false) }
+    var watching by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun load() {
         busy = true; err = ""
         scope.launch {
-            try { o = JSONObject(Gh.apiGet("/repos/$fullName")) }
-            catch (e: Exception) { err = errText(e) }
-            finally { busy = false }
+            try {
+                o = JSONObject(Gh.apiGet("/repos/$fullName"))
+                starred = try { Gh.apiGet("/user/starred/$fullName"); true } catch (_: Exception) { false }
+                watching = try {
+                    JSONObject(Gh.apiGet("/repos/$fullName/subscription")).flag("subscribed")
+                } catch (_: Exception) { false }
+            } catch (e: Exception) {
+                err = errText(e)
+            } finally {
+                busy = false
+            }
         }
     }
 
@@ -158,9 +168,9 @@ fun RepoOverview(fullName: String, owner: String, repo: String, onOpenIssue: (In
                 }
                 Gap(10)
                 Row(Modifier.fillMaxWidth()) {
-                    SmallBtn(if (d.flag("starred_at").not() && false) "★ 已 Star" else "★ Star", GhYellow) { toggleStar(false) }
+                    SmallBtn(if (starred) "★ 取消 Star" else "★ Star", GhYellow) { toggleStar(starred) }
                     androidx.compose.foundation.layout.Spacer(Modifier.size(8.dp))
-                    SmallBtn("👁 Watch", GhBlue) { toggleWatch(false) }
+                    SmallBtn(if (watching) "👁 取消 Watch" else "👁 Watch", GhBlue) { toggleWatch(watching) }
                     androidx.compose.foundation.layout.Spacer(Modifier.size(8.dp))
                     SmallBtn("⑂ Fork", GhPurple) { fork() }
                 }
@@ -177,7 +187,7 @@ fun RepoOverview(fullName: String, owner: String, repo: String, onOpenIssue: (In
                     KV("License", d.obj("license").str("spdx_id").ifEmpty { "—" })
                     KV("主页", d.str("homepage").ifEmpty { "—" })
                     KV("克隆", d.str("clone_url"))
-                    if (d.obj("permissions").isNotEmpty()) {
+                    if (d.obj("permissions").length() > 0) {
                         val p = d.obj("permissions")
                         KV("我的权限", listOfNotNull(
                             if (p.flag("admin")) "admin" else null,

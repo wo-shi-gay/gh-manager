@@ -205,8 +205,8 @@ fun NotificationsTab() {
                 items(rows.size) { i ->
                     val o = rows[i]
                     NotifRow(o) {
-                        val full = o.str("repository").str("full_name")
-                        val num = o.str("subject").str("url").substringAfterLast("/").toIntOrNull()
+                        val full = o.obj("repository").str("full_name")
+                        val num = o.obj("subject").str("url").substringAfterLast("/").toIntOrNull()
                         if (full.isNotEmpty()) {
                             if (num != null && num > 0) {
                                 Nav.push("issue:$full|$num|issue")

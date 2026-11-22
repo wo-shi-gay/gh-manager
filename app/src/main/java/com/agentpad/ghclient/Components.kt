@@ -318,15 +318,13 @@ fun NotifRow(o: JSONObject, onClick: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     StateChip(o.str("reason").ifEmpty { "通知" }, GhBlue)
                     Text(
-                        "  ${o.str("subject").obj("type")
-                            .replace("Issue", "Issue")
-                            .replace("PullRequest", "PR")}",
+                        "  " + o.obj("subject").str("type").replace("PullRequest", "PR"),
                         color = GhDim,
                         fontSize = 10.5.sp
                     )
                 }
                 Text(
-                    o.str("subject").str("title"),
+                    o.obj("subject").str("title"),
                     color = GhText,
                     fontSize = 13.sp,
                     maxLines = 2,
@@ -334,7 +332,7 @@ fun NotifRow(o: JSONObject, onClick: () -> Unit) {
                     modifier = Modifier.padding(top = 5.dp)
                 )
                 Text(
-                    "${o.str("repository").str("full_name")} · ${isoToRel(o.str("updated_at"))}",
+                    "${o.obj("repository").str("full_name")} · ${isoToRel(o.str("updated_at"))}",
                     color = GhDim,
                     fontSize = 10.5.sp,
                     modifier = Modifier.padding(top = 3.dp)

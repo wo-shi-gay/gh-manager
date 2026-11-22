@@ -175,7 +175,7 @@ fun IssueDetailScreen(fullName: String, number: Int, isPr: Boolean) {
                         GhCard {
                             Text("Pull Request", color = GhPurple, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             Gap(6)
-                            KV("分支", pr.str("head").obj("label") + " → " + pr.str("base").obj("label"))
+                            KV("分支", pr.obj("head").str("label") + " → " + pr.obj("base").str("label"))
                             KV("可合并", if (pr.flag("mergeable")) "✅ 是" else "❌ 有冲突")
                             KV("改动", "+${pr.num("additions")} / -${pr.num("deletions")} · ${pr.num("changed_files")} 文件")
                             KV("提交数", pr.num("commits").toString())
