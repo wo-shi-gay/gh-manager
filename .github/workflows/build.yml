@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,9 +29,16 @@ jobs:
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon --stacktrace
 
-      - name: Build release APK (unsigned->debug signed)
+      - name: Build release APK
         run: gradle :app:assembleRelease --no-daemon --stacktrace
         continue-on-error: true
+
+      - name: Collect APKs
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/*.apk out/ 2>/dev/null || true
+          cp app/build/outputs/apk/release/*.apk out/ 2>/dev/null || true
+          ls -la out
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -43,3 +53,40 @@ jobs:
           name: GhManager-release
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
+
+      - name: Publish to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v2.0.${{ github.run_number }}
+          name: GitHub 管理器 v2.0.${{ github.run_number }}
+          body: |
+            ## GitHub 管理器 v2.0
+
+            ### 本次更新
+            - 🎨 **全新 UI 重构**：渐变配色、图标化导航、卡片化布局、状态可视化
+            - 📡 **本地 MCP 服务**：一键开端口，把 GitHub 全部权限暴露为标准 MCP 工具
+              - 43 个工具：仓库 / 代码 / Issue / PR / Commit / Actions / 通知 / Gist / 搜索
+              - 支持 JSON-RPC 2.0 over HTTP（POST /mcp）、SSE 握手、CORS
+              - 可选访问令牌校验、前台服务常驻、实时请求计数
+            - 🌐 界面内直接显示局域网 IP 与客户端 JSON 配置，一键复制
+
+            ### 安装
+            下载下方 `app-debug.apk` 或 `app-release.apk`，直接安装即可。
+          files: |
+            out/*.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Show APK links
+        run: |
+          echo "### ✅ 构建完成" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Release 下载页**：https://github.com/${{ github.repository }}/releases/latest" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 文件 | 大小 |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          for f in out/*.apk; do
+            echo "| $(basename $f) | $(du -h $f | cut -f1) |" >> $GITHUB_STEP_SUMMARY
+          done

@@ -60,43 +60,43 @@ fun Root() {
         return
     }
 
-    Box(Modifier.fillMaxSize()) {
-        val route = Nav.current
-        when {
-            route == null -> HomeScreen(onLogout = {
-                Session.clear(ctx)
-                signedIn = false
-                Nav.reset()
-            })
-            route.startsWith("repo:") -> RepoDetailScreen(route.removePrefix("repo:"))
-            route.startsWith("issue:") -> {
-                val p = route.removePrefix("issue:").split("|")
-                if (p.size >= 3) IssueDetailScreen(p[0], p[1].toIntOrNull() ?: 0, p[2] == "pr")
-                else Nav.pop()
-            }
-            route.startsWith("run:") -> {
-                val p = route.removePrefix("run:").split("|")
-                if (p.size >= 2) RunDetailScreen(p[0], p[1].toLongOrNull() ?: 0L)
-                else Nav.pop()
-            }
-            route.startsWith("create:") -> CreateRepoScreen()
-            route.startsWith("gists") -> GistsScreen()
-            route.startsWith("search") -> SearchScreen()
-            route.startsWith("newissue:") -> {
-                val p = route.removePrefix("newissue:").split("|")
-                if (p.size >= 2) NewIssueScreen(p[0], p[1])
-                else Nav.pop()
-            }
-            else -> HomeScreen(onLogout = {
-                Session.clear(ctx)
-                signedIn = false
-                Nav.reset()
-            })
+    val route = Nav.current
+    when {
+        route == null -> HomeScreen(onLogout = {
+            Session.clear(ctx)
+            McpService.stopService(ctx)
+            signedIn = false
+            Nav.reset()
+        })
+        route.startsWith("repo:") -> RepoDetailScreen(route.removePrefix("repo:"))
+        route.startsWith("issue:") -> {
+            val p = route.removePrefix("issue:").split("|")
+            if (p.size >= 3) IssueDetailScreen(p[0], p[1].toIntOrNull() ?: 0, p[2] == "pr")
+            else Nav.pop()
         }
+        route.startsWith("run:") -> {
+            val p = route.removePrefix("run:").split("|")
+            if (p.size >= 2) RunDetailScreen(p[0], p[1].toLongOrNull() ?: 0L)
+            else Nav.pop()
+        }
+        route.startsWith("create:") -> CreateRepoScreen()
+        route.startsWith("gists") -> GistsScreen()
+        route.startsWith("search") -> SearchScreen()
+        route.startsWith("mcp") -> McpScreen()
+        route.startsWith("newissue:") -> {
+            val p = route.removePrefix("newissue:").split("|")
+            if (p.size >= 2) NewIssueScreen(p[0], p[1])
+            else Nav.pop()
+        }
+        else -> HomeScreen(onLogout = {
+            Session.clear(ctx)
+            McpService.stopService(ctx)
+            signedIn = false
+            Nav.reset()
+        })
     }
 }
 
-/** 供各屏幕共用的简单仓库信息缓存键 */
 fun repoKey(o: JSONObject): String = o.str("full_name")
 
 fun splitRepo(fullName: String): Pair<String, String> {

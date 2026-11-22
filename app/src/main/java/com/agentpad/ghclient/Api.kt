@@ -95,6 +95,10 @@ object Gh {
 
     suspend fun apiDelete(path: String): String =
         withContext(Dispatchers.IO) { reqSync("DELETE", path, null, "application/vnd.github+json") }
+
+    /** 同步调用（给 MCP 的 HTTP 线程用，不在协程里） */
+    fun callSync(method: String, path: String, body: JSONObject? = null): String =
+        reqSync(method, path, body?.toString(), "application/vnd.github+json")
 }
 
 /** 把异常翻译成人类可读的错误 */
